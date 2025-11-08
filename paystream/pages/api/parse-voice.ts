@@ -1,54 +1,62 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import FormData from "form-data";
 
-export const config = { api: { bodyParser: false } };
+// We need raw audio bytes, so disable Next.js default body parsing
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
-async function bufferFromReq(req: NextApiRequest): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
+async function readRawBody(req: NextApiRequest): Promise<Buffer> {
+  return await new Promise<Buffer>((resolve, reject) => {
     const chunks: Buffer[] = [];
-    req.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+    req.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
     req.on("end", () => resolve(Buffer.concat(chunks)));
     req.on("error", reject);
   });
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") return res.status(405).end();
-
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   try {
-    const ELEVEN = process.env.ELEVEN_API_KEY;
-    if (!ELEVEN) return res.status(500).json({ error: "missing ELEVEN_API_KEY" });
-    const MODEL_ID = process.env.ELEVEN_STT_MODEL_ID;
-    if (!MODEL_ID) return res.status(500).json({ error: "missing ELEVEN_STT_MODEL_ID" });
+    // Accept either ELEVEN_API_KEY or ELEVENLABS_API_KEY for convenience
+    const apiKey = process.env.ELEVEN_API_KEY || process.env.ELEVENLABS_API_KEY;
+    const modelId = process.env.ELEVEN_STT_MODEL_ID || "scribe_v1"; // sensible default
+    if (!apiKey) return res.status(500).json({ error: "missing ELEVEN_API_KEY" });
+    if (!modelId) return res.status(500).json({ error: "missing ELEVEN_STT_MODEL_ID" });
 
-    const raw = await bufferFromReq(req);
+    const audio = await readRawBody(req);
+    if (!audio || audio.length === 0) {
+      return res.status(400).json({ error: "no audio" });
+    }
+
+    // Build multipart/form-data payload per ElevenLabs STT requirements
     const form = new FormData();
-    form.append("file", raw, { filename: "voice.wav", contentType: "audio/wav" });
-    form.append("model_id", MODEL_ID);
+    form.append("file", audio, { filename: "audio.wav", contentType: "audio/wav" });
+    form.append("model_id", modelId);
 
-    const url = "https://api.elevenlabs.io/v1/speech-to-text"; // confirm against ElevenLabs docs
-    const response = await fetch(url, {
+    const resp = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
       method: "POST",
       headers: {
-        ...(form as any).getHeaders?.(),
-        "xi-api-key": ELEVEN,
+        ...form.getHeaders(),
+        "xi-api-key": apiKey,
       } as any,
       body: form as any,
     });
 
-    if (!response.ok) {
-      const txt = await response.text();
-      console.error("ElevenLabs STT error:", txt);
+    if (!resp.ok) {
+      const txt = await resp.text();
       return res.status(500).json({ error: "STT failed", details: txt });
     }
-    const data = await response.json();
-    const text =
-      (data && (data.text || data.transcript)) ??
-      (data?.results && data.results[0]?.alternatives?.[0]?.transcript) ??
-      JSON.stringify(data);
-    return res.status(200).json({ text });
-  } catch (err) {
+
+    const data = await resp.json();
+    // Try common fields; fall back to returning entire payload
+    const text: string | undefined = (data && (data.text || data.transcript || data.output_text)) as string | undefined;
+    return res.status(200).json(text ? { text } : data);
+  } catch (err: any) {
     console.error(err);
-    return res.status(500).json({ error: "server error", details: String(err) });
+    const details = err?.message || String(err);
+    return res.status(500).json({ error: "server error", details });
   }
 }

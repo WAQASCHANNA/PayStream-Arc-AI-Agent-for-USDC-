@@ -26,6 +26,9 @@ export default function VoiceDemo() {
           setStatus("Uploading audio...");
           const parseRes = await fetch("/api/parse-voice", {
             method: "POST",
+            headers: {
+              "Content-Type": "audio/wav",
+            },
             body: audioBlob,
           });
           if (!parseRes.ok) {
