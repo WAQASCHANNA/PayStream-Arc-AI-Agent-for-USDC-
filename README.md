@@ -1,5 +1,7 @@
 # PayStream — Arc AI Agent for USDC Streams
 
+![PayStream cover](assets/cover.svg)
+
 A full-stack demo that turns natural language into on-chain USDC payment agreements on Arc testnet. The app parses user intent (Cloudflare Workers AI), prepares and registers agreements on-chain (USDC approve, deposit, create), obtains an oracle signature, and executes the agreement to distribute funds.
 
 - Frontend: Next.js 15 (`paystream`), Tailwind, React 19, thirdweb client

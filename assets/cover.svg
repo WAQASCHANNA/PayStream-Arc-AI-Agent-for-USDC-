@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="628" viewBox="0 0 1200 628">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="1200" height="628" fill="url(#bg)"/>
+  <circle cx="1050" cy="90" r="180" fill="#0ea5e9" opacity="0.08" filter="url(#soft)"/>
+  <circle cx="140" cy="520" r="200" fill="#22c55e" opacity="0.06" filter="url(#soft)"/>
+
+  <!-- Title -->
+  <text x="600" y="120" fill="#ffffff" font-size="56" font-weight="700" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">PayStream</text>
+  <text x="600" y="165" fill="#93c5fd" font-size="22" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">Voice-activated USDC payments on Arc testnet</text>
+
+  <!-- Flow blocks -->
+  <!-- Voice -->
+  <rect x="60" y="240" rx="16" ry="16" width="210" height="120" fill="#1f2937" stroke="#374151" stroke-width="2"/>
+  <text x="165" y="285" fill="#e5e7eb" font-size="18" font-weight="600" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">Voice</text>
+  <text x="165" y="315" fill="#9ca3af" font-size="14" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">Microphone / Wallet Connect</text>
+
+  <!-- Vercel/Next APIs -->
+  <rect x="310" y="205" rx="16" ry="16" width="280" height="190" fill="#111827" stroke="#374151" stroke-width="2"/>
+  <text x="450" y="240" fill="#e5e7eb" font-size="18" font-weight="600" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">Next.js APIs</text>
+  <text x="450" y="268" fill="#9ca3af" font-size="14" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">/api/parse-voice · /api/parse-intent</text>
+  <text x="450" y="292" fill="#9ca3af" font-size="14" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">/api/prepare-agreement · /api/oracle-sign</text>
+  <text x="450" y="316" fill="#9ca3af" font-size="14" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">/api/execute-agreement</text>
+
+  <!-- Arc Testnet -->
+  <rect x="620" y="205" rx="16" ry="16" width="270" height="190" fill="#0b1020" stroke="#1f2937" stroke-width="2"/>
+  <text x="755" y="240" fill="#e5e7eb" font-size="18" font-weight="600" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">Arc Testnet (L1)</text>
+  <text x="755" y="270" fill="#9ca3af" font-size="14" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">ConditionalEscrow (USDC escrow)</text>
+  <text x="755" y="296" fill="#9ca3af" font-size="14" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">USDC Token (ERC-20)</text>
+
+  <!-- Oracle / Agent -->
+  <rect x="915" y="225" rx="16" ry="16" width="220" height="150" fill="#191a2c" stroke="#1f2937" stroke-width="2"/>
+  <text x="1025" y="260" fill="#e5e7eb" font-size="18" font-weight="600" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">Agent & Oracle</text>
+  <text x="1025" y="290" fill="#9ca3af" font-size="14" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">ORACLE_PRIVATE_KEY · SERVER WALLETS</text>
+
+  <!-- Arrows -->
+  <path d="M270 300 L310 300" stroke="url(#accent)" stroke-width="4"/>
+  <polygon points="310,300 300,294 300,306" fill="url(#accent)"/>
+
+  <path d="M590 300 L620 300" stroke="#06b6d4" stroke-width="4"/>
+  <polygon points="620,300 610,294 610,306" fill="#06b6d4"/>
+
+  <path d="M890 300 L915 300" stroke="#22c55e" stroke-width="4"/>
+  <polygon points="915,300 905,294 905,306" fill="#22c55e"/>
+
+  <!-- Footer tagline -->
+  <rect x="60" y="380" rx="12" ry="12" width="1070" height="70" fill="#0f172a" stroke="#1f2937" stroke-width="2"/>
+  <text x="595" y="422" fill="#93c5fd" font-size="16" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">Intent → Agreement → Oracle Signature → Execution</text>
+
+  <!-- Accent underline -->
+  <rect x="420" y="178" width="360" height="6" fill="url(#accent)" rx="3"/>
+</svg>
