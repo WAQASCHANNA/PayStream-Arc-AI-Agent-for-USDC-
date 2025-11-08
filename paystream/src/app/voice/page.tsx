@@ -129,7 +129,7 @@ export default function VoiceDemo() {
     <div className="container max-w-screen-xl mx-auto px-4 py-10">
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-100">Voice Payments</h1>
-        <p className="text-sm text-zinc-400 mt-2">Speak a payment instruction (e.g., "Pay Waqas 1 USD when invoice 123 is paid").</p>
+        <p className="text-sm text-zinc-400 mt-2">Speak a payment instruction (e.g., &ldquo;Pay Waqas 1 USD when invoice 123 is paid&rdquo;).</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">

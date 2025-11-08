@@ -20,7 +20,7 @@ export default function About() {
 
         <div className="border border-zinc-800 rounded-xl bg-black/40 p-5">
           <h2 className="text-xl font-semibold text-zinc-100">Tagline</h2>
-          <p className="text-sm text-zinc-300 mt-2">“Where AI Decisions Meet USDC Execution”</p>
+          <p className="text-sm text-zinc-300 mt-2">&ldquo;Where AI Decisions Meet USDC Execution&rdquo;</p>
         </div>
       </section>
 
@@ -42,7 +42,7 @@ export default function About() {
               </tr>
               <tr className="border-t border-zinc-800">
                 <td className="py-2 pr-4">Limited Flexibility</td>
-                <td className="py-2">Most payment systems support only basic "if-then" logic</td>
+                <td className="py-2">Most payment systems support only basic &quot;if-then&quot; logic</td>
               </tr>
               <tr className="border-t border-zinc-800">
                 <td className="py-2 pr-4">Multi-Party Complexity</td>
@@ -54,7 +54,7 @@ export default function About() {
               </tr>
               <tr className="border-t border-zinc-800">
                 <td className="py-2 pr-4">Voice AI Isolation</td>
-                <td className="py-2">Voice technology exists but isn't integrated with payments</td>
+                <td className="py-2">Voice technology exists but isn&apos;t integrated with payments</td>
               </tr>
             </tbody>
           </table>
@@ -62,7 +62,7 @@ export default function About() {
         <div className="mt-4 text-sm text-zinc-300">
           <p className="font-medium">Real-World Pain Points</p>
           <ul className="list-disc list-inside mt-2">
-            <li>Freelancers: Can't easily set up milestone-based payments</li>
+            <li>Freelancers: Can&apos;t easily set up milestone-based payments</li>
             <li>Real Estate: Complex multi-party escrows require legal intermediaries</li>
             <li>Supply Chain: Payments delayed by manual verification processes</li>
             <li>Content Creators: No automated royalty distribution based on performance</li>
@@ -84,7 +84,7 @@ export default function About() {
             </li>
             <li>
               <span className="font-medium">Multi-Party Conditional Escrow</span>
-              <div className="text-zinc-400">Smart contracts with customizable approval logic; Support for "M of N" signature requirements</div>
+              <div className="text-zinc-400">Smart contracts with customizable approval logic; Support for &quot;M of N&quot; signature requirements</div>
             </li>
             <li>
               <span className="font-medium">Cross-Chain Ready</span>
