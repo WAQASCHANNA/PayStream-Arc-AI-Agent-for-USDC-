@@ -1,0 +1,8 @@
+name = "paystream-worker"
+main = "src/index.ts"
+compatibility_date = "2024-10-01"
+
+[vars]
+ORACLE_PRIVATE_KEY = ""
+WORKERS_AI_ACCOUNT_ID = ""
+SAND_API_KEY = ""

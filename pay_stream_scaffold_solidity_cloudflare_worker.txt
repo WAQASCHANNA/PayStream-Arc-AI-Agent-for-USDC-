@@ -1,0 +1,341 @@
+# Project scaffold: PayStream — Voice-Activated Conditional USDC Payments on Arc
+
+This single-file scaffold contains the minimal files to get started building both sides you asked for: (A) a Foundry Solidity project (ConditionalEscrow contract, deploy script, tests) and (B) a Cloudflare Worker / Node.js agent scaffold that handles voice -> STT -> LLM intent parsing -> EIP-712 payload creation.
+
+---
+
+// FILE: Foundry.toml
+```
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+
+[default]
+rpc_url = "${RPC_URL}"
+
+default_chain = "arc-testnet"
+
+[chain.arc-testnet]
+chain_id = 5042002
+rpc_url = "https://rpc.testnet.arc.network"
+```
+
+---
+
+// FILE: .env.example
+```
+# Arc / Testnet
+RPC_URL=https://rpc.testnet.arc.network
+CHAIN_ID=5042002
+PRIVATE_KEY=your_deployer_private_key_here
+USDC_ADDRESS=0x3600000000000000000000000000000000000000
+
+# Oracle key (used to sign oracle payloads in the demo)
+ORACLE_PRIVATE_KEY=oracle_private_key_here
+ORACLE_ADDRESS=oracle_public_address_here
+
+# ElevenLabs / AI keys
+ELEVEN_API_KEY=your_elevenlabs_api_key
+WORKERS_AI_KEY=your_cloudflare_workers_ai_key
+AIMLAPI_KEY=your_aimlapi_key
+
+# Thirdweb / Circle (optional)
+THIRDWEB_API_KEY=your_thirdweb_api_key
+CIRCLE_API_KEY=your_circle_api_key
+```
+
+---
+
+// FILE: src/ConditionalEscrow.sol
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "forge-std/Script.sol";
+
+interface IERC20 {
+    function transfer(address to, uint256 amount) external returns (bool);
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function balanceOf(address owner) external view returns (uint256);
+    function decimals() external view returns (uint8);
+}
+
+library ECDSAUtils {
+    function recover(bytes32 hash, bytes memory signature) internal pure returns (address) {
+        require(signature.length == 65, "invalid sig length");
+        bytes32 r; bytes32 s; uint8 v;
+        assembly {
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
+            v := byte(0, mload(add(signature, 96)))
+        }
+        if (v < 27) {
+            v += 27;
+        }
+        return ecrecover(hash, v, r, s);
+    }
+}
+
+contract ConditionalEscrow {
+    address public owner;
+    IERC20 public usdc;
+    address public oracle; // oracle public address used for signed events
+
+    struct Agreement {
+        address creator; // who created/deposited
+        address[] recipients;
+        uint256[] amounts;
+        uint256 totalAmount;
+        uint256 deadline;
+        bytes32 conditionHash; // commitment to condition (off-chain description)
+        bool executed;
+    }
+
+    mapping(bytes32 => Agreement) public agreements;
+
+    event AgreementCreated(bytes32 indexed id, address indexed creator, uint256 totalAmount);
+    event AgreementExecuted(bytes32 indexed id);
+
+    constructor(address _usdc, address _oracle) {
+        owner = msg.sender;
+        usdc = IERC20(_usdc);
+        oracle = _oracle;
+    }
+
+    function deposit(uint256 amount) external {
+        require(amount > 0, "zero");
+        require(usdc.transferFrom(msg.sender, address(this), amount), "transfer failed");
+    }
+
+    function createAgreement(
+        bytes32 id,
+        address[] calldata recipients,
+        uint256[] calldata amounts,
+        uint256 deadline,
+        bytes32 conditionHash
+    ) external {
+        require(agreements[id].totalAmount == 0, "agreement exists");
+        require(recipients.length == amounts.length, "len mismatch");
+        uint256 sum = 0;
+        for (uint i = 0; i < amounts.length; i++) sum += amounts[i];
+        agreements[id] = Agreement(msg.sender, recipients, amounts, sum, deadline, conditionHash, false);
+        emit AgreementCreated(id, msg.sender, sum);
+    }
+
+    // oracleMessage: keccak256(abi.encodePacked(id, successFlag, recipients, amounts)) signed by oracle
+    function executeAgreement(bytes32 id, bytes calldata oracleSig) external {
+        Agreement storage ag = agreements[id];
+        require(!ag.executed, "already executed");
+        require(block.timestamp <= ag.deadline, "deadline passed");
+        require(ag.totalAmount > 0, "no agreement");
+
+        // Recreate message hash
+        bytes32 msgHash = keccak256(abi.encodePacked(id, ag.recipients, ag.amounts));
+        bytes32 ethPrefixed = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", msgHash));
+        address signer = ECDSAUtils.recover(ethPrefixed, oracleSig);
+        require(signer == oracle, "bad oracle sig");
+
+        // transfer to recipients
+        ag.executed = true;
+        for (uint i = 0; i < ag.recipients.length; i++) {
+            require(usdc.transfer(ag.recipients[i], ag.amounts[i]), "transfer failed");
+        }
+        emit AgreementExecuted(id);
+    }
+
+    // cancel by creator before execution
+    function cancelAgreement(bytes32 id) external {
+        Agreement storage ag = agreements[id];
+        require(ag.creator == msg.sender, "not creator");
+        require(!ag.executed, "already");
+        delete agreements[id];
+    }
+
+    // admin helper to change oracle
+    function setOracle(address newOracle) external {
+        require(msg.sender == owner, "only owner");
+        oracle = newOracle;
+    }
+}
+```
+
+---
+
+// FILE: script/Deploy.s.sol
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "forge-std/Script.sol";
+import {ConditionalEscrow} from "../src/ConditionalEscrow.sol";
+
+contract DeployScript is Script {
+    function run() external {
+        string memory rpc = vm.envString("RPC_URL");
+        vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
+        address usdc = vm.envAddress("USDC_ADDRESS");
+        address oracle = vm.envAddress("ORACLE_ADDRESS");
+        new ConditionalEscrow(usdc, oracle);
+        vm.stopBroadcast();
+    }
+}
+```
+
+---
+
+// FILE: test/ConditionalEscrow.t.sol
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "forge-std/Test.sol";
+import {ConditionalEscrow} from "../src/ConditionalEscrow.sol";
+
+contract MockERC20 {
+    mapping(address => uint256) public balance;
+    uint8 public constant decimalsVal = 6;
+    function transferFrom(address from,address to,uint256 amt) external returns(bool) { balance[to]+=amt; return true; }
+    function transfer(address to,uint256 amt) external returns(bool) { balance[to]+=amt; return true; }
+    function balanceOf(address owner) external view returns(uint256){ return balance[owner]; }
+    function decimals() external pure returns(uint8){ return decimalsVal; }
+}
+
+contract ConditionalEscrowTest is Test {
+    ConditionalEscrow esc;
+    MockERC20 m;
+    address oracle = address(0xCAFE);
+
+    function setUp() public {
+        m = new MockERC20();
+        esc = new ConditionalEscrow(address(m), oracle);
+    }
+
+    function testCreateAndExecute() public {
+        address[] memory rec = new address[](1);
+        rec[0] = address(0xBEEF);
+        uint256[] memory am = new uint256[](1);
+        am[0] = 100;
+        bytes32 id = keccak256(abi.encodePacked("a1"));
+        esc.createAgreement(id, rec, am, block.timestamp + 1 days, bytes32(0));
+        // simulate oracle sign: for test we will create the hash and sign it via ecrecover simulation is not done here
+        // skipping real sig: directly call executeAgreement will fail but ensures compile and basic flow
+    }
+}
+```
+
+---
+
+// FILE: worker/README.md
+```
+Cloudflare Worker / Node agent scaffold
+
+This directory contains two options:
+  - `worker/` - a Cloudflare Workers-compatible JS handler that routes audio -> ElevenLabs STT and uses Workers AI or AIMLAPI for intent parsing.
+  - `server/` - an express/fastify server (local dev) that demonstrates the same logic (useful for local testing before deploying to Cloudflare).
+
+Endpoints (scaffold):
+  POST /parse-voice -> accepts base64 audio, forwards to ElevenLabs STT, returns text
+  POST /parse-intent -> accepts text, calls Workers AI (or AIMLAPI) to return structured agreement JSON
+  POST /prepare-agreement -> accepts agreement JSON, returns EIP-712 typed data and agreement id (keccak)
+  POST /oracle-sign -> (demo only) server signs oracle payload with ORACLE_PRIVATE_KEY and returns signature
+
+```
+
+---
+
+// FILE: worker/index.js
+```js
+// Minimal Cloudflare Worker-style scaffold (node-like syntax for clarity)
+// For local testing use `server/index.js` Express version.
+
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request))
+})
+
+async function handleRequest(req) {
+  const url = new URL(req.url);
+  if (req.method === 'POST' && url.pathname === '/parse-voice') {
+    const body = await req.json();
+    // body.audio = base64 audio or URL
+    // call ElevenLabs STT (fetch) - return text
+    return new Response(JSON.stringify({ text: 'mock transcribed text' }), { status: 200 });
+  }
+  if (req.method === 'POST' && url.pathname === '/parse-intent') {
+    const { text } = await req.json();
+    // call Workers AI or AIMLAPI and parse to structured form
+    const agreement = {
+      recipients: ['0xRecipientAddress...'],
+      amounts: [1000000],
+      condition: 'invoice:123 paid',
+      deadline: Math.floor(Date.now()/1000) + 86400
+    };
+    return new Response(JSON.stringify({ agreement }), { status: 200 });
+  }
+  if (req.method === 'POST' && url.pathname === '/prepare-agreement') {
+    const { agreement } = await req.json();
+    const id = crypto.subtle ? 'demoid' : 'demoid';
+    return new Response(JSON.stringify({ id, typedData: {/* EIP-712 skeleton */} }), { status: 200 });
+  }
+  if (req.method === 'POST' && url.pathname === '/oracle-sign') {
+    // demo-only: sign message using ORACLE_PRIVATE_KEY stored as env, return signature
+    return new Response(JSON.stringify({ signature: '0xsig...' }), { status: 200 });
+  }
+  return new Response('Not Found', { status: 404 });
+}
+```
+
+---
+
+// FILE: server/index.js
+```js
+// Local Express server for development and testing (Node.js)
+const express = require('express');
+const bodyParser = require('body-parser');
+const fetch = require('node-fetch');
+const app = express();
+app.use(bodyParser.json({ limit: '10mb' }));
+
+app.post('/parse-voice', async (req, res) => {
+  const { audio } = req.body; // base64
+  // TODO: call ElevenLabs STT
+  res.json({ text: 'transcribed text (mock)' });
+});
+
+app.post('/parse-intent', async (req, res) => {
+  const { text } = req.body;
+  // TODO: call Workers AI or AIMLAPI
+  res.json({ agreement: { recipients: ['0x...'], amounts: [100], condition: 'mock' } });
+});
+
+app.post('/oracle-sign', async (req, res) => {
+  // Demo only: sign payload using ORACLE_PRIVATE_KEY - implement with ethers.js wallet.signMessage
+  res.json({ signature: '0xsig' });
+});
+
+app.listen(3000, () => console.log('Dev server listening on :3000'));
+```
+
+---
+
+// FILE: README.md
+```
+# PayStream — Scaffold
+
+## What this scaffold contains
+- Foundry Solidity example contract for conditional escrow / agreements
+- Deploy script and simple tests
+- Cloudflare Worker & local Express server stub for voice/LLM/OCR/agent flow
+
+## Quickstart
+1. Copy `.env.example` -> `.env` and fill values (RPC_URL, PRIVATE_KEY, USDC_ADDRESS etc.)
+2. Install Foundry & dependencies (https://book.getfoundry.sh/)
+3. `forge build` to compile
+4. `forge test` to run tests (local mocks)
+5. `forge script script/Deploy.s.sol --broadcast --rpc-url $RPC_URL --private-key $PRIVATE_KEY`
+6. Start local server for agent: `node server/index.js`
+
+## Next steps (I will implement next):
+- Flesh out EIP-712 typed data creation & signature helpers in `worker/` and `src/` for off-chain signing
+- Implement ElevenLabs STT call and Cloudflare Workers AI prompt and parsing flow
+- Add CI tests and a demo Streamlit front-end

@@ -1,0 +1,5 @@
+
+> paystream-dev-server@0.1.0 contract:deploy
+> node -r dotenv/config deploy-contract.mjs dotenv_config_path=../.env
+
+Deploying ConditionalEscrow...

@@ -1,0 +1,31 @@
+{
+  "name": "paystream-dev-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "contract:deploy": "node -r dotenv/config deploy-contract.mjs dotenv_config_path=../.env",
+    "contract:deployer": "node -r dotenv/config print-deployer.mjs dotenv_config_path=../.env",
+    "contract:generate-deployer": "node -r dotenv/config generate-deployer.mjs dotenv_config_path=../.env",
+    "contract:deposit": "node -r dotenv/config escrow-deposit.mjs dotenv_config_path=../.env",
+    "w3s:register-entity-secret": "node -r dotenv/config w3s-register-entity-secret.mjs dotenv_config_path=../.env",
+    "w3s:create-wallet": "node -r dotenv/config w3s-create-wallet.mjs dotenv_config_path=../.env",
+    "circle:wallet:create": "node -r dotenv/config create-circle-wallet.mjs dotenv_config_path=../.env",
+    "circle:config": "node -r dotenv/config circle-config.js dotenv_config_path=../.env",
+    "circle:sdk:test": "node -r dotenv/config circle-sdk-test.mjs dotenv_config_path=../.env",
+    "tools:resolve-usdc": "node -r dotenv/config resolve-usdc-from-tx.mjs dotenv_config_path=../.env"
+  },
+  "dependencies": {
+    "solc": "^0.8.30",
+    "@circle-fin/developer-controlled-wallets": "^9.1.0",
+    "@circle-fin/circle-sdk": "^2.9.0",
+    "axios": "^1.7.7",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2",
+    "uuid": "^9.0.1",
+    "viem": "^2.9.7"
+  }
+}
