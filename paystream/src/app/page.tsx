@@ -19,13 +19,19 @@ export default function Home() {
           >
             Try the Voice Payments Demo
           </Link>
-          <ConnectButton
-            client={client}
-            appMetadata={{
-              name: "PayStream",
-              url: "https://example.com",
-            }}
-          />
+          {client ? (
+            <ConnectButton
+              client={client}
+              appMetadata={{
+                name: "PayStream",
+                url: "https://example.com",
+              }}
+            />
+          ) : (
+            <div className="text-xs text-zinc-500">
+              Wallet connect disabled: set `NEXT_PUBLIC_TEMPLATE_CLIENT_ID` in environment.
+            </div>
+          )}
         </div>
       </section>
 

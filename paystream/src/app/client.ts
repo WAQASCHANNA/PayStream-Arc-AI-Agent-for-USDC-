@@ -1,13 +1,9 @@
 import { createThirdwebClient } from "thirdweb";
 
-// Replace this with your client ID string
-// refer to https://portal.thirdweb.com/typescript/v5/client on how to get a client ID
+// Reads the client ID from environment. If not present, export undefined
+// so the UI can gracefully disable wallet connections without breaking builds.
 const clientId = process.env.NEXT_PUBLIC_TEMPLATE_CLIENT_ID;
 
-if (!clientId) {
-  throw new Error("No client ID provided");
-}
-
-export const client = createThirdwebClient({
-  clientId: clientId,
-});
+export const client = clientId
+  ? createThirdwebClient({ clientId })
+  : undefined;
