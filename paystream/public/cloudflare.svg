@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80">
+  <defs>
+    <linearGradient id="cfgrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <path d="M30 50c0-12 10-22 22-22 5-9 15-15 26-15 16 0 30 11 34 26 10-2 20 6 20 16H30z" fill="url(#cfgrad)"/>
+    <path d="M130 44h24c8 0 16 6 16 14h-40c-6 0-10-3-10-7 0-4 4-7 10-7z" fill="#fcd34d"/>
+  </g>
+</svg>

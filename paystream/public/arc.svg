@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120">
+  <defs>
+    <linearGradient id="arcgrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+  </defs>
+  <!-- Arc mark -->
+  <path d="M60 96c0-36 16-72 44-72s44 36 44 72h-24c0-28-8-48-20-48s-20 20-20 48H60z" fill="url(#arcgrad)"/>
+  <!-- Wordmark -->
+  <text x="160" y="90" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="56" fill="#ffffff" opacity="0.9">Arc</text>
+</svg>

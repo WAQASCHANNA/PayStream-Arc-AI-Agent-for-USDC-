@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80">
+  <defs>
+    <linearGradient id="aigrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0ea5e9"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect x="20" y="14" width="56" height="52" rx="8" fill="#0b0b12" stroke="#1f2937"/>
+  <path d="M32 54l12-16 10 8 12-20" stroke="url(#aigrad)" stroke-width="4" fill="none"/>
+  <circle cx="32" cy="54" r="3" fill="#22d3ee"/>
+  <text x="90" y="48" font-family="system-ui, -apple-system, Segoe UI, Roboto" font-size="18" fill="#ffffff">AI/ML API</text>
+</svg>

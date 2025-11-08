@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="circleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="50%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#circleGrad)" stroke-width="18" stroke-linecap="round">
+    <!-- Segmented ring arcs approximating Circle icon -->
+    <path d="M149.5 149.5 A 70 70 0 0 1 32.4 118.1"/>
+    <path d="M30.3 93.9 A 70 70 0 0 1 140.1 42.7"/>
+    <path d="M157.3 59.9 A 70 70 0 0 1 163.4 129.6"/>
+  </g>
+  <!-- Inner dot -->
+  <circle cx="100" cy="100" r="16" fill="url(#circleGrad)"/>
+</svg>
