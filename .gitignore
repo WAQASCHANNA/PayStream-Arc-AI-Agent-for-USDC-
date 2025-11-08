@@ -10,6 +10,9 @@ coverage/
 # Environment files
 .env
 .env*.local
+# Ensure env files in nested app directories are ignored
+paystream/.env
+paystream/.env*.local
 
 # Logs
 npm-debug.log*
