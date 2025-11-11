@@ -22,12 +22,13 @@ export default function VoiceDemo() {
       mediaRecorder.ondataavailable = (e) => audioChunksRef.current.push(e.data);
       mediaRecorder.onstop = async () => {
         try {
-          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
+          const mime = mediaRecorder.mimeType || "audio/webm";
+          const audioBlob = new Blob(audioChunksRef.current, { type: mime });
           setStatus("Uploading audio...");
           const parseRes = await fetch("/api/parse-voice", {
             method: "POST",
             headers: {
-              "Content-Type": "audio/wav",
+              "Content-Type": mime,
             },
             body: audioBlob,
           });

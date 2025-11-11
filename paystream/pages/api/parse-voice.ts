@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import FormData from "form-data";
+// Use native FormData/Blob provided by the runtime
 
 // We need raw audio bytes, so disable Next.js default body parsing
 export const config = {
@@ -32,17 +32,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Build multipart/form-data payload per ElevenLabs STT requirements
+    const contentTypeHeader = (req.headers["content-type"] as string | undefined) || "";
+    const contentType = contentTypeHeader.startsWith("audio/") ? contentTypeHeader : "audio/webm";
+    const filename = contentType.includes("wav") ? "audio.wav" : contentType.includes("webm") ? "audio.webm" : "audio.dat";
     const form = new FormData();
-    form.append("file", audio, { filename: "audio.wav", contentType: "audio/wav" });
+    form.append("file", new Blob([audio], { type: contentType }), filename);
     form.append("model_id", modelId);
 
-    const resp = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
+    const resp = await fetch("https://api.elevenlabs.io/v1/speech-to-text/convert", {
       method: "POST",
       headers: {
-        ...form.getHeaders(),
         "xi-api-key": apiKey,
-      } as any,
-      body: form as any,
+      },
+      body: form,
     });
 
     if (!resp.ok) {
