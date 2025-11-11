@@ -36,9 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const contentType = contentTypeHeader.startsWith("audio/") ? contentTypeHeader : "audio/webm";
     const filename = contentType.includes("wav") ? "audio.wav" : contentType.includes("webm") ? "audio.webm" : "audio.dat";
     const form = new FormData();
-    // Convert Buffer to a proper Uint8Array view for Blob typing
-    const bytes = new Uint8Array(audio.buffer, audio.byteOffset, audio.byteLength);
-    form.append("file", new Blob([bytes], { type: contentType }), filename);
+    // Build a true ArrayBuffer from the Node Buffer to satisfy DOM Blob typing
+    const arrayBuffer = new ArrayBuffer(audio.byteLength);
+    const uint8 = new Uint8Array(arrayBuffer);
+    uint8.set(audio);
+    form.append("file", new Blob([arrayBuffer], { type: contentType }), filename);
     form.append("model_id", modelId);
 
     const resp = await fetch("https://api.elevenlabs.io/v1/speech-to-text/convert", {
